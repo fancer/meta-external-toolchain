@@ -1,13 +1,14 @@
 import os.path
+import re
 import oe.path
 import bb
 
 
 def run(d, cmd, *args):
-    topdir = d.getVar('TOPDIR', True)
-    toolchain_path = d.getVar('EXTERNAL_TOOLCHAIN', True)
+    topdir = d.getVar('TOPDIR')
+    toolchain_path = d.getVar('EXTERNAL_TOOLCHAIN')
     if toolchain_path:
-        target_prefix = d.getVar('EXTERNAL_TARGET_SYS', True) + '-'
+        target_prefix = d.getVar('EXTERNAL_TARGET_SYS') + '-'
         path = os.path.join(toolchain_path, 'bin', target_prefix + cmd)
         args = [path] + list(args)
 
@@ -25,15 +26,15 @@ def get_file_search_metadata(d):
     '''Given the metadata, return the mirrors and sysroots to operate against.'''
 
     mirrors = []
-    for entry in d.getVar('FILES_MIRRORS', True).replace('\\n', '\n').split('\n'):
+    for entry in d.getVar('FILES_MIRRORS').replace('\\n', '\n').split('\n'):
         entry = entry.strip()
         if not entry:
             continue
-        pattern, subst = entry.strip().split('|', 1)
-        mirrors.append(('^' + pattern, subst))
+        pathname, subst = entry.strip().split('|', 1)
+        mirrors.append(('^' + re.escape(pathname), subst))
 
     source_paths = [os.path.realpath(p)
-                    for p in d.getVar('EXTERNAL_INSTALL_SOURCE_PATHS', True).split()]
+                    for p in d.getVar('EXTERNAL_INSTALL_SOURCE_PATHS').split()]
 
     return source_paths, mirrors
 
@@ -43,9 +44,9 @@ def gather_pkg_files(d):
     this recipe.'''
     import itertools
     files = []
-    for pkg in d.getVar('PACKAGES', True).split():
-        files = itertools.chain(files, (d.getVar('FILES_{}'.format(pkg), True) or '').split())
-    files = itertools.chain(files, d.getVar('EXTERNAL_EXTRA_FILES', True).split())
+    for pkg in d.getVar('PACKAGES').split():
+        files = itertools.chain(files, (d.getVar('EXTERNAL_FILES_{}'.format(pkg)) or d.getVar('FILES_{}'.format(pkg)) or '').split())
+    files = itertools.chain(files, d.getVar('EXTERNAL_EXTRA_FILES').split())
     return files
 
 

@@ -11,17 +11,44 @@ PREFERRED_PROVIDER_virtual/${TARGET_PREFIX}binutils ?= "binutils-external-cross-
 PREFERRED_PROVIDER_virtual/${TARGET_PREFIX}compilerlibs ?= "gcc-runtime-external"
 PREFERRED_PROVIDER_virtual/${TARGET_PREFIX}libc-for-gcc ?= "glibc-external"
 PREFERRED_PROVIDER_virtual/${TARGET_PREFIX}libc-initial ?= "glibc-external"
-PREFERRED_PROVIDER_gcc-sanitizers ?= "gcc-sanitizers-external"
-PREFERRED_PROVIDER_glibc ?= "glibc-external"
 PREFERRED_PROVIDER_virtual/libc ?= "glibc-external"
 PREFERRED_PROVIDER_virtual/libintl ?= "glibc-external"
 PREFERRED_PROVIDER_virtual/libiconv ?= "glibc-external"
-PREFERRED_PROVIDER_gdbserver ??= "gdb"
+PREFERRED_PROVIDER_virtual/libc-locale ?= "glibc-locale-external"
+PREFERRED_PROVIDER_gdb-cross-${TARGET_ARCH} ?= "gdb-external-cross-${TARGET_ARCH}"
+PREFERRED_PROVIDER_gdbserver ?= "gdbserver-external"
 PREFERRED_PROVIDER_oprofile ??= "oprofile"
 
 # This is defined in default-providers.inc, which is parsed before the tcmode,
 # so we can't use ?=
+PREFERRED_PROVIDER_gcc-runtime = "gcc-runtime-external"
+PREFERRED_PROVIDER_gcc-sanitizers = "gcc-sanitizers-external"
 PREFERRED_PROVIDER_libgcc = "libgcc-external"
+PREFERRED_PROVIDER_libgcc-initial = "libgcc-external"
+PREFERRED_PROVIDER_libgfortran = "libgfortran-external"
+PREFERRED_PROVIDER_linux-libc-headers = "linux-libc-headers-external"
+
+# Glibc providers definition to resolve the build warnings
+PREFERRED_PROVIDER_glibc ?= "glibc-external"
+PREFERRED_PROVIDER_glibc-initial ?= "glibc-external"
+PREFERRED_PROVIDER_localedef ?= "glibc-locale-external"
+PREFERRED_PROVIDER_glibc-locale ?= "glibc-locale-external"
+PREFERRED_PROVIDER_glibc-mtrace ?= "glibc-mtrace-external"
+PREFERRED_PROVIDER_glibc-scripts ?= "glibc-scripts-external"
+
+# Preferred toolchain cross-canadians
+PREFERRED_PROVIDER_binutils-cross-canadian-${TRANSLATED_TARGET_ARCH} ?= "binutils-external-cross-canadian-${TRANSLATED_TARGET_ARCH}"
+PREFERRED_PROVIDER_gcc-cross-canadian-${TRANSLATED_TARGET_ARCH} ?= "gcc-external-cross-canadian-${TRANSLATED_TARGET_ARCH}"
+PREFERRED_PROVIDER_gdb-cross-canadian-${TRANSLATED_TARGET_ARCH} ?= "gdb-external-cross-canadian-${TRANSLATED_TARGET_ARCH}"
+
+# SDK preferred untilities
+#PREFERRED_PROVIDER_virtual/${SDK_PREFIX}binutils-crosssdk ?= "binutils-crosssdk-${SDK_SYS}"
+#PREFERRED_PROVIDER_virtual/${SDK_PREFIX}gcc-initial = "gcc-crosssdk-initial-${SDK_SYS}"
+#PREFERRED_PROVIDER_virtual/${SDK_PREFIX}gcc = "gcc-crosssdk-${SDK_SYS}"
+#PREFERRED_PROVIDER_virtual/${SDK_PREFIX}g++ = "gcc-crosssdk-${SDK_SYS}"
+#PREFERRED_PROVIDER_virtual/${SDK_PREFIX}compilerlibs = "nativesdk-gcc-runtime"
+#PREFERRED_PROVIDER_virtual/nativesdk-${SDK_PREFIX}libc-for-gcc ?= "nativesdk-glibc"
+#PREFERRED_PROVIDER_virtual/nativesdk-${SDK_PREFIX}libc-initial ?= "nativesdk-glibc-initial"
 
 # Pass --no-sysroot-suffix when using an external toolchain with the SDK
 TOOLCHAIN_TARGET_TASK_append = " sdk-env-external-toolchain"
@@ -39,15 +66,24 @@ PNBLACKLIST[uclibc-initial] = "not building with an external toolchain"
 PNBLACKLIST[glibc] = "not building with an external toolchain"
 PNBLACKLIST[glibc-initial] = "not building with an external toolchain"
 PNBLACKLIST[glibc-intermediate] = "not building with an external toolchain"
+PNBLACKLIST[glibc-locale] = "not building with an external toolchain"
+PNBLACKLIST[glibc-mtrace] = "not building with an external toolchain"
+PNBLACKLIST[glibc-scripts] = "not building with an external toolchain"
 PNBLACKLIST[gcc-runtime] = "not building with an external toolchain"
 PNBLACKLIST[gcc-sanitizers] = "not building with an external toolchain"
 PNBLACKLIST[gcc-source] = "not building with an external toolchain"
 PNBLACKLIST[libgcc-initial] = "not building with an external toolchain"
 PNBLACKLIST[libgcc] = "not building with an external toolchain"
+PNBLACKLIST[libgfortran] = "not building with an external toolchain"
+PNBLACKLIST[linux-libc-headers] = "not building with an external toolchain"
 
 PNBLACKLIST_DYNAMIC += "\
     ${MLPREFIX}gcc-cross-${TARGET_ARCH} \
     ${MLPREFIX}gcc-cross-initial-${TARGET_ARCH} \
+    \
+    binutils-cross-canadian-${TRANSLATED_TARGET_ARCH} \
+    gcc-cross-canadian-${TRANSLATED_TARGET_ARCH} \
+    gdb-cross-canadian-${TRANSLATED_TARGET_ARCH} \
     \
     gcc-source-${@'${GCCVERSION}'.replace('%', '')} \
 "
@@ -78,7 +114,6 @@ gcc_bindir = "${STAGING_BINDIR_TOOLCHAIN}/gcc"
 TUNE_CCARGS += "-B${gcc_bindir}"
 
 TCMODEOVERRIDES = "tcmode-external"
-TCMODEOVERRIDES_append = ":tcmode-${TCMODE}"
 OVERRIDES =. "${TCMODEOVERRIDES}:"
 
 python toolchain_metadata_setup () {
